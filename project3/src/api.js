@@ -33,7 +33,7 @@ function computeMatchPercentage(attrs, target) {
 }
 
 async function getSimilarArtistsFromLastFM(artistName) {
-  const url = `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=${encodeURIComponent(artistName)}&api_key=${LASTFM_API_KEY}&format=json&limit=6`;
+  const url = `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=${encodeURIComponent(artistName)}&api_key=${LASTFM_API_KEY}&format=json&limit=10`;
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Last.fm API error: ${res.statusText}`);
@@ -85,7 +85,7 @@ async function spotifyFetch(url, retry = false) {
 
 async function getTopTracksFromSpotify(artistName) {
   const query = encodeURIComponent(artistName);
-  const url = `https://api.spotify.com/v1/search?q=${query}&type=artist&limit=1`;
+  const url = `https://api.spotify.com/v1/search?q=${query}&type=artist&limit=4`;
 
   const res = await spotifyFetch(url);
   const data = await res.json();
@@ -162,7 +162,7 @@ export async function getSimilarArtistsTopTracks(artistName, targetAttributes) {
         seenArtists.add(r.artist);
         uniqueArtistResults.push(r);
       }
-      if (uniqueArtistResults.length === 6) break;
+      if (uniqueArtistResults.length === 10) break;
     }
 
     return uniqueArtistResults;
