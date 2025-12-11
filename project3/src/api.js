@@ -1,21 +1,13 @@
-const LASTFM_API_KEY = "A"; 
-const SPOTIFY_TOKEN = "B";  
-const SOUNDCHARTS_APP_ID = "C"; 
-const SOUNDCHARTS_API_KEY = "D"; 
-
-const SAMPLE_TARGET = {
-  danceability: 0.7,
-  energy: 0.8,
-  acousticness: 0.3,
-  loudness: 0.5,   
-  speechiness: 0.4
-};
+const LASTFM_API_KEY = "765b398a184f12f2d3b4e75536e62641"; 
+const SPOTIFY_TOKEN = "BQBBr4wt-DFdPomd_7i3Cf-P4gASO0cnolOHbabug1afonOGzo9w_-A91waL6U9zd7gpKTySt29QhrnkfzOAShwtZ9yZ3Hbsa1huDZIQ2c051xizYN1Y_va8XjgZ0BJfIh7NB1Wd708";  // Replace with your Spotify OAuth token
+const SOUNDCHARTS_APP_ID = "HHUNTER-API_497A5641"; 
+const SOUNDCHARTS_API_KEY = "fb47bdcfad423799"; 
 
 function normalizeLoudness(dB) {
   return (dB + 60) / 60;
 }
 
-function computeCloseness(attrs) {
+function computeCloseness(attrs, target) {
   let score = 0;
 
   const normalizedAttrs = {
@@ -26,9 +18,9 @@ function computeCloseness(attrs) {
     loudness: normalizeLoudness(attrs.loudness ?? -60)
   };
 
-  for (const key of Object.keys(TARGET)) {
+  for (const key of Object.keys(target)) {
     if (normalizedAttrs[key] !== undefined) {
-      score += Math.abs(normalizedAttrs[key] - TARGET[key]);
+      score += Math.abs(normalizedAttrs[key] - target[key]);
     }
   }
 
@@ -63,7 +55,7 @@ async function getTopTracksFromSpotify(artistName) {
   });
 
   const tracksData = await tracksRes.json();
-  return tracksData.tracks.slice(0, 3);
+  return tracksData.tracks.slice(0, 2);
 }
 
 async function getSongAttributesFromSoundcharts(spotifyTrackId) {
@@ -80,7 +72,7 @@ async function getSongAttributesFromSoundcharts(spotifyTrackId) {
   return data.object.audio;
 }
 
-async function getSimilarArtistsTopTracks(artistName) {
+export async function getSimilarArtistsTopTracks(artistName, targetAttributes) {
   try {
     const similarArtists = await getSimilarArtistsFromLastFM(artistName);
 
@@ -93,7 +85,7 @@ async function getSimilarArtistsTopTracks(artistName) {
         const attrs = await getSongAttributesFromSoundcharts(track.id);
         if (!attrs) continue;
 
-        const closeness = computeCloseness(attrs);
+        const closeness = computeCloseness(attrs, targetAttributes);
 
         results.push({
           artist: track.artists[0]?.name ?? artist,
@@ -104,6 +96,7 @@ async function getSimilarArtistsTopTracks(artistName) {
     }
 
     results.sort((a, b) => a.closeness - b.closeness);
+
     const uniqueArtistResults = [];
     const seenArtists = new Set();
 
@@ -115,14 +108,11 @@ async function getSimilarArtistsTopTracks(artistName) {
       if (uniqueArtistResults.length === 5) break;
     }
 
-    console.log("\n=== TOP 5 CLOSEST SONGS (unique artists) ===");
-    uniqueArtistResults.forEach((r, i) => {
-      console.log(`${i + 1}. ${r.url} | closeness: ${r.closeness.toFixed(3)} | artist: ${r.artist}`);
-    });
+    return uniqueArtistResults;
 
   } catch (err) {
     console.error("Error:", err);
+    return [];
   }
 }
 
-getSimilarArtistsTopTracks("Taylor Swift");

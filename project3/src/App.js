@@ -2,34 +2,37 @@ import './App.css';
 import React from 'react';
 import spotifyLogo from './spotifyLogo.png';
 import { useState } from 'react';
+import { getSimilarArtistsTopTracks } from './api';
 
 
 function App() {
-  //hi
     const [danceability, setDanceability] = useState(0.5);
     const [acousticness, setAcousticness] = useState(0.5);
     const [energy, setEnergy] = useState(0.5);
     const [loudness, setLoudness] = useState(0.5);
     const [speechiness, setSpeechiness] = useState(0.5);
     const [artistInput, setArtistInput] = useState("");
+    const [recommendations, setRecommendations] = useState([]);
 
     
-    const handleGenerate = () => {
-      const dataArray = [
-      `Artist: ${artistInput}`,
-      `Danceability: ${danceability}`,
-      `Acousticness: ${acousticness}`,
-      `Energy: ${energy}`,
-      `Loudness: ${loudness}`,
-      `Speechiness: ${speechiness}`
-    ];
-
-    console.log(dataArray); 
+    const handleGenerate = async () => {
+    const target = {
+    danceability: parseFloat(danceability),
+    acousticness: parseFloat(acousticness),
+    energy: parseFloat(energy),
+    loudness: parseFloat(loudness),
+    speechiness: parseFloat(speechiness),
   };
+
+  const results = await getSimilarArtistsTopTracks(artistInput, target);
+
+  setRecommendations(results);
+};
+
+
   
-    
-
-
+  
+  
 
 
   return (
@@ -152,6 +155,20 @@ function App() {
 >
   Generate Recommendations
 </button>
+
+<div className="results">
+  {recommendations.length > 0 && (
+    <ul>
+      {recommendations.map((r, index) => (
+        <li key={index}>
+          <a href={r.url} target="_blank" rel="noreferrer">
+            {r.artist}
+          </a> — closeness {r.closeness.toFixed(3)}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
 
 
   
